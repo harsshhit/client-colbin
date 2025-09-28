@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userAPI } from '../api';
+import Toast from '../components/Toast';
 
 interface User {
   id: string;
@@ -12,6 +13,8 @@ const Profile = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showLogoutToast, setShowLogoutToast] = useState(false);
+  const [showWelcomeToast, setShowWelcomeToast] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,6 +28,7 @@ const Profile = () => {
       try {
         const response = await userAPI.getProfile();
         setUser(response.data.user);
+        setShowWelcomeToast(true);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to fetch profile');
         // Error handling for 401 is now handled by the API interceptor
@@ -37,8 +41,11 @@ const Profile = () => {
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    setShowLogoutToast(true);
+    setTimeout(() => {
+      localStorage.removeItem('token');
+      navigate('/login');
+    }, 1500);
   };
 
   if (loading) {
@@ -68,8 +75,11 @@ const Profile = () => {
             <p className="text-royal-gray text-sm sm:text-base mb-8">Manage your account information</p>
             
             {error && (
-              <div className="text-royal-golden text-sm bg-royal-black/50 p-4 rounded-xl mb-6 border border-royal-golden/20 backdrop-blur-sm">
-                {error}
+              <div className="text-red-400 text-sm bg-red-900/20 p-4 rounded-xl mb-6 border border-red-500/30 backdrop-blur-sm flex items-center space-x-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{error}</span>
               </div>
             )}
 
@@ -107,6 +117,22 @@ const Profile = () => {
           </div>
         </div>
       </div>
+      
+      <Toast
+        message={`Welcome back, ${user?.name || 'User'}!`}
+        type="success"
+        isVisible={showWelcomeToast}
+        onClose={() => setShowWelcomeToast(false)}
+        duration={3000}
+      />
+      
+      <Toast
+        message="Logged out successfully! Redirecting to login..."
+        type="success"
+        isVisible={showLogoutToast}
+        onClose={() => setShowLogoutToast(false)}
+        duration={1500}
+      />
     </div>
   );
 };

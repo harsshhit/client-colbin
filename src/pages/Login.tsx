@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../api';
+import Toast from '../components/Toast';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,7 +28,10 @@ const Login = () => {
     try {
       const response = await authAPI.login(formData);
       localStorage.setItem('token', response.data.token);
-      navigate('/profile');
+      setShowSuccessToast(true);
+      setTimeout(() => {
+        navigate('/profile');
+      }, 1500);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
     } finally {
@@ -71,6 +76,7 @@ const Login = () => {
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleChange}
+                  disabled={loading}
                 />
               </div>
               
@@ -87,14 +93,18 @@ const Login = () => {
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
+                  disabled={loading}
                 />
               </div>
             </div>
           </div>
 
           {error && (
-            <div className="text-royal-golden text-sm text-center bg-royal-black/50 p-4 rounded-xl border border-royal-golden/20 backdrop-blur-sm">
-              {error}
+            <div className="text-red-400 text-sm text-center bg-red-900/20 p-4 rounded-xl border border-red-500/30 backdrop-blur-sm flex items-center justify-center space-x-2">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
             </div>
           )}
 
@@ -119,6 +129,14 @@ const Login = () => {
           </button>
         </form>
       </div>
+      
+      <Toast
+        message="Login successful! Redirecting to profile..."
+        type="success"
+        isVisible={showSuccessToast}
+        onClose={() => setShowSuccessToast(false)}
+        duration={1500}
+      />
     </div>
   );
 };

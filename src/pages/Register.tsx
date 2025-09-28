@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../api';
+import Toast from '../components/Toast';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ const Register = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,7 +29,10 @@ const Register = () => {
     try {
       const response = await authAPI.register(formData);
       console.log('Registration successful:', response.data);
-      navigate('/login');
+      setShowSuccessToast(true);
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -72,6 +77,7 @@ const Register = () => {
                   placeholder="Enter your full name"
                   value={formData.name}
                   onChange={handleChange}
+                  disabled={loading}
                 />
               </div>
               
@@ -88,6 +94,7 @@ const Register = () => {
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleChange}
+                  disabled={loading}
                 />
               </div>
               
@@ -104,14 +111,18 @@ const Register = () => {
                   placeholder="Create a password"
                   value={formData.password}
                   onChange={handleChange}
+                  disabled={loading}
                 />
               </div>
             </div>
           </div>
 
           {error && (
-            <div className="text-royal-golden text-sm text-center bg-royal-black/50 p-4 rounded-xl border border-royal-golden/20 backdrop-blur-sm">
-              {error}
+            <div className="text-red-400 text-sm text-center bg-red-900/20 p-4 rounded-xl border border-red-500/30 backdrop-blur-sm flex items-center justify-center space-x-2">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
             </div>
           )}
 
@@ -136,6 +147,14 @@ const Register = () => {
           </button>
         </form>
       </div>
+      
+      <Toast
+        message="Account created successfully! Redirecting to login..."
+        type="success"
+        isVisible={showSuccessToast}
+        onClose={() => setShowSuccessToast(false)}
+        duration={2000}
+      />
     </div>
   );
 };
